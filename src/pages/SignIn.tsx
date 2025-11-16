@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Crown, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignIn() {
+  const { signIn: authSignIn, user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,22 +16,21 @@ export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  React.useEffect(() => {
+    if (user) {
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+      navigate(redirect || '/dashboard');
+    }
+  }, [user, navigate, location]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signInError) throw signInError;
-
-      const params = new URLSearchParams(location.search);
-      const redirect = params.get('redirect');
-      navigate(redirect || '/dashboard');
+      await authSignIn(formData.email, formData.password);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

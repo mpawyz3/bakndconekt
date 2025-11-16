@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Crown, User, Building, Users, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUp() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +19,12 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,22 +53,35 @@ export default function SignUp() {
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        throw new Error(signUpError.message || 'Sign up failed');
+      }
 
       if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert([
-          {
-            id: authData.user.id,
-            username: formData.name,
-            avatar_url: '',
-            bio: '',
-          },
-        ]);
+        // Wait for database trigger to create profile
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        if (profileError) throw profileError;
-        navigate('/dashboard');
+        // Verify profile was created
+        const { data: profile, error: profileCheckError } = await supabase
+          .from('profiles')
+          .select('id, name, tier, account_type')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (profileCheckError) {
+          console.error('Profile check error:', profileCheckError);
+          throw new Error('Profile creation failed. Please try again.');
+        }
+
+        if (!profile) {
+          throw new Error('Account created but profile setup failed. Please sign in and try again.');
+        }
+
+        setError('');
+        // Auth context will automatically redirect when session is detected
       }
     } catch (err: unknown) {
+      console.error('Signup error:', err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
