@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('profiles')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching profile:', error.message);
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (profile) {
       return {
         ...profile,
-        email: email, // Add email which is not in the profiles table
+        email: email,
       };
     }
     return null;
@@ -152,7 +152,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
-        data: { name: name, accountType: accountType },
+        data: {
+          name: name,
+          account_type: accountType
+        },
       }
     });
 
@@ -165,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user) {
       // Profile will be created automatically by a database trigger
       // Wait a moment for the trigger to execute
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     setLoading(false);
   };

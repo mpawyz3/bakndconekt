@@ -6,7 +6,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Portfolio from './pages/Portfolio';
-import Media from './pages/Media';
+import MediaNew from './pages/MediaNew';
 import Masterclass from './pages/Masterclass';
 import Projects from './pages/Projects';
 import HelpCenter from './pages/HelpCenter';
@@ -59,7 +59,7 @@ function AppContent() {
           <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
           <Route path="/portfolio" element={user ? <Portfolio /> : <Navigate to="/" />} />
           <Route path="/settings" element={user ? <Settings /> : <Navigate to="/" />} />
-          <Route path="/media" element={<Media />} />
+          <Route path="/media" element={<MediaNew />} />
           <Route path="/masterclass" element={<Masterclass />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/events" element={<Events />} />
